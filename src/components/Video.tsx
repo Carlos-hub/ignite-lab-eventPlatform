@@ -1,36 +1,10 @@
 import { DefaultUi, Player, Youtube } from "@vime/react";
 import { CaretRight, DiscordLogo, FileArrowDown, Lightning } from "phosphor-react";
-import { gql, useQuery } from "@apollo/client";
 
 import '@vime/core/themes/default.css';
+import { useGetLessonBySlugQuery } from "../graphql/generated";
 
-const GET_LESSON_BY_SLUG_QUERY = gql`
-    query GetLessonBySlug($slug: String) {
-  lesson(where: {slug: $slug}) {
-    title
-    description
-    videoId
-    teacher {
-      bio
-      avatarURL
-      name
-    }
-  }
-}
-`
 
-interface GetLessonBySlugResponse{
-    lesson:{
-        title:string;
-        videoId:string;
-        description:string;
-        teacher:{
-            bio:string;
-            avatarURL:string;
-            name:string;
-        }
-    }
-}
 
 interface VideoProps{
     lessonSlug:string;
@@ -38,15 +12,14 @@ interface VideoProps{
 
 export function Video(props: VideoProps){
 
-    const { data } = useQuery<GetLessonBySlugResponse>(GET_LESSON_BY_SLUG_QUERY,{
+    const { data } = useGetLessonBySlugQuery({
         variables:{
             slug: props.lessonSlug,
         }
     })
 
-    console.log(data)
 
-    if(!data){
+    if(!data || !data.lesson){
         return(
         <div className="flex-1 items-center justify-center">
             <p className="justify-center">Carregando...</p>
@@ -67,12 +40,13 @@ export function Video(props: VideoProps){
             </div>
 
             <div className="p-8 max-w-[1100px] mx-auto">
-                <div className="flex items-start gap-16">
+                <div className="sm:block md:flex items-start gap-16">
                     <div className="flex-1 ">
                         <h1 className="text-2xl font-bold">{data.lesson.title}</h1>
                         <p className="mt-4 text-gray-200 leading-relaxed">{data.lesson.description}</p>
 
-                        <div className="flex items-center  gap-4 mt-6">
+                        {data.lesson.teacher &&(
+                            <div className="flex items-center  gap-4 mt-6">
                             <img 
                             src={data.lesson.teacher.avatarURL} 
                             alt=""
@@ -87,13 +61,14 @@ export function Video(props: VideoProps){
                                 </span>
                             </div>
                         </div>
+                        )}
                     </div>
-                    <div className="flex flex-col gap-4">
+                    <div className="sm:mt-4 sm:block md:flex flex-col gap-4">
                         <a href="" className="p-4 text-sm bg-green-500 flex items-center rounded font-bold uppercase gap-2 justify-center hover:bg-green-700 transition-colors">
                             <DiscordLogo size={24}/>
                             Comunidade do discord
                         </a>
-                        <a href="" className="p-4 text-sm flex border border-blue-500 text-blue-500 items-center rounded font-bold uppercase gap-2 justify-center hover:bg-blue-500 hover:text-gray-900 transition-colors">
+                        <a href="" className="sm:mt-2 p-4 text-sm flex border border-blue-500 text-blue-500 items-center rounded font-bold uppercase gap-2 justify-center hover:bg-blue-500 hover:text-gray-900 transition-colors">
                             <Lightning size={24}/>
                             Acesse o Desafio
                         </a>
